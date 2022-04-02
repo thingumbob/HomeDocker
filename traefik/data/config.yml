@@ -1,0 +1,122 @@
+http:
+ #region routers
+  routers:
+    pihole:
+      entryPoints:
+        - "https"
+      rule: "Host(`pihole.ektra.moln.page`)"
+      middlewares:
+        - default-headers
+        - addprefix-pihole
+      tls: {}
+      service: pihole
+    nzbhydra:
+      entryPoints:
+        - "https"
+      rule: "Host(`nzbhydra.ektra.moln.page`)"
+      middlewares:
+        - default-headers
+      tls: {}
+      service: nzbhydra
+    nzbget:
+      entryPoints:
+        - "https"
+      rule: "Host(`nzbget.ektra.moln.page`)"
+      middlewares:
+        - default-headers
+      tls: {}
+      service: nzbget
+    jackett:
+      entryPoints:
+        - "https"
+      rule: "Host(`jackett.ektra.moln.page`)"
+      middlewares:
+        - default-headers
+      tls: {}
+      service: jackett
+    transmission:
+      entryPoints:
+        - "https"
+      rule: "Host(`transmission.ektra.moln.page`)"
+      middlewares:
+        - default-headers
+      tls: {}
+      service: transmission
+    prowlarr:
+      entryPoints:
+        - "https"
+      rule: "Host(`prowlarr.ektra.moln.page`)"
+      middlewares:
+        - default-headers
+      tls: {}
+      service: prowlarr
+##endregion
+
+#region services
+  services:
+    pihole:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.8:80"
+        passHostHeader: true
+    nzbhydra:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.240:5076"
+        passHostHeader: true
+    jackett:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.240:9117"
+        passHostHeader: true
+    nzbget:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.240:6789"
+        passHostHeader: true
+    transmission: 
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.240:9091"
+        passHostHeader: true
+    prowlarr:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.240:9696"
+        passHostHeader: true
+#endregion
+
+  middlewares:
+    addprefix-pihole:
+      addPrefix:
+        prefix: "/admin"
+    https-redirect:
+      redirectScheme:
+        scheme: https
+
+    default-headers:
+      headers:
+        frameDeny: true
+        sslRedirect: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 15552000
+        customFrameOptionsValue: SAMEORIGIN
+        customRequestHeaders:
+          X-Forwarded-Proto: https
+
+    default-whitelist:
+      ipWhiteList:
+        sourceRange:
+        - "10.0.0.0/8"
+        - "192.168.0.0/16"
+        - "172.16.0.0/12"
+
+    secured:
+      chain:
+        middlewares:
+        - default-whitelist
+        - default-headers
