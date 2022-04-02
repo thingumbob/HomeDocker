@@ -1,0 +1,186 @@
+version: "3"
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr
+    container_name: sonarr
+    networks:
+      - proxy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Perth
+    volumes:
+      - /docker/containers/sonarr:/config
+      - /docker/media/tvShows:/tv 
+      - /docker/media/downloads:/downloads
+      - /dev/rtc:/dev/rtc
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sonarr.entrypoints=http"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.ektra.moln.page`)"
+      - "traefik.http.middlewares.sonarr-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.sonarr.middlewares=sonarr-https-redirect"
+      - "traefik.http.routers.sonarr-secure.entrypoints=https"
+      - "traefik.http.routers.sonarr-secure.rule=Host(`sonarr.ektra.moln.page`)"
+      - "traefik.http.routers.sonarr-secure.tls=true"
+      - "traefik.http.routers.sonarr-secure.service=sonarr"
+      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+      - "traefik.docker.network=proxy"
+  
+  radarr:
+    image: lscr.io/linuxserver/radarr
+    container_name: radarr
+    networks:
+      - proxy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Perth
+    volumes:
+      - /docker/containers/Radarr:/config
+      - /docker/media/movies:/movies 
+      - /docker/media/downloads:/downloads 
+      - /dev/rtc:/dev/rtc
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.radarr.entrypoints=http"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.ektra.moln.page`)"
+      - "traefik.http.middlewares.radarr-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.radarr.middlewares=radarr-https-redirect"
+      - "traefik.http.routers.radarr-secure.entrypoints=https"
+      - "traefik.http.routers.radarr-secure.rule=Host(`radarr.ektra.moln.page`)"
+      - "traefik.http.routers.radarr-secure.tls=true"
+      - "traefik.http.routers.radarr-secure.service=radarr"
+      - "traefik.http.services.radarr.loadbalancer.server.port=7878"
+      - "traefik.docker.network=proxy"
+
+  overseerr:
+    image: lscr.io/linuxserver/overseerr
+    container_name: overseerr
+    networks:
+      - proxy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Perth
+    volumes:
+      - /docker-volume/containers/Overseerr/data:/config
+    ports:
+      - 5055:5055
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.overseerr.entrypoints=http"
+      - "traefik.http.routers.overseerr.rule=Host(`overseerr.ektra.moln.page`)"
+      - "traefik.http.middlewares.overseerr-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.overseerr.middlewares=overseerr-https-redirect"
+      - "traefik.http.routers.overseerr-secure.entrypoints=https"
+      - "traefik.http.routers.overseerr-secure.rule=Host(`overseerr.ektra.moln.page`)"
+      - "traefik.http.routers.overseerr-secure.tls=true"
+      - "traefik.http.routers.overseerr-secure.service=overseerr"
+      - "traefik.http.services.overseerr.loadbalancer.server.port=5055"
+      - "traefik.docker.network=proxy"
+
+  calibre:
+    image: lscr.io/linuxserver/calibre
+    container_name: calibre
+    networks:
+      - proxy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Perth
+      - PASSWORD= #PASSWORD
+      - CLI_ARGS= #optional
+    volumes:
+      - /media/docker/calibre/:/config
+      - /media/Calibre_Media:/media
+      - /media/eBooks:/books
+      - /docker-volume/media/books:/import
+    ports:
+      - 8080:8080
+      - 8081:8081
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.calibre.entrypoints=http"
+      - "traefik.http.routers.calibre.rule=Host(`calibre.ektra.moln.page`)"
+      - "traefik.http.middlewares.calibre-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.calibre.middlewares=calibre-https-redirect"
+      - "traefik.http.routers.calibre-secure.entrypoints=https"
+      - "traefik.http.routers.calibre-secure.rule=Host(`calibre.ektra.moln.page`)"
+      - "traefik.http.routers.calibre-secure.tls=true"
+      - "traefik.http.routers.calibre-secure.service=calibre"
+      - "traefik.http.services.calibre.loadbalancer.server.port=8080"
+      - "traefik.docker.network=proxy"
+      
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web
+    container_name: calibre-web
+    networks:
+      - proxy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Perth
+    volumes:
+      - /docker-volume/containers/Calibre-web:/config
+      - /media/eBooks:/books
+    ports:
+      - 8083:8083
+    restart: unless-stopped
+    labels:    
+      - "traefik.enable=true"
+      - "traefik.http.routers.calibre-web.entrypoints=http"
+      - "traefik.http.routers.calibre-web.rule=Host(`calibreweb.ektra.moln.page`)"
+      - "traefik.http.middlewares.calibre-web-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.calibre-web.middlewares=calibre-web-https-redirect"
+      - "traefik.http.routers.calibre-web-secure.entrypoints=https"
+      - "traefik.http.routers.calibre-web-secure.rule=Host(`calibreweb.ektra.moln.page`)"
+      - "traefik.http.routers.calibre-web-secure.tls=true"
+      - "traefik.http.routers.calibre-web-secure.service=calibre-web"
+      - "traefik.http.services.calibre-web.loadbalancer.server.port=8083"
+      - "traefik.docker.network=proxy"
+
+  readarr:
+    container_name: readarr
+    networks:
+      - proxy
+    image: hotio/readarr:nightly
+    ports:
+      - 8787:8787
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=Australia/Perth
+    volumes:
+      - /docker-volume/containers/readarr:/config
+      - /docker-volume/media/downloads:/downloads
+      - /docker-volume/media/books:/import
+      - /media/AudioBooks:/audiobooks
+      - /media/eBooks:/books
+    restart: unless-stopped
+    labels:    
+      - "traefik.enable=true"
+      - "traefik.http.routers.readarr.entrypoints=http"
+      - "traefik.http.routers.readarr.rule=Host(`readarr.ektra.moln.page`)"
+      - "traefik.http.middlewares.readarr-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.readarr.middlewares=readarr-https-redirect"
+      - "traefik.http.routers.readarr-secure.entrypoints=https"
+      - "traefik.http.routers.readarr-secure.rule=Host(`readarr.ektra.moln.page`)"
+      - "traefik.http.routers.readarr-secure.tls=true"
+      - "traefik.http.routers.readarr-secure.service=readarr"
+      - "traefik.http.services.readarr.loadbalancer.server.port=8787"
+      - "traefik.docker.network=proxy"
+      
+networks:
+  proxy:
+    external: true
+
